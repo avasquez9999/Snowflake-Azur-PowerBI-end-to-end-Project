@@ -1,5 +1,4 @@
-# Snowflake-Azur-PowerBI-end-to-end-Project
-Snowflake &amp; Power BI: Consumer Insights Lab data enginering and analytics
+Markdown
 # ❄️ Snowflake & Power BI: Consumer Insights Lab
 
 ![Snowflake](https://img.shields.io/badge/Snowflake-29B5E8?style=for-the-badge&logo=snowflake&logoColor=white)
@@ -50,6 +49,10 @@ CREATE OR REPLACE USER POWERBI
 
 GRANT ROLE POWERBI_ROLE TO USER POWERBI;
 ALTER USER POWERBI SET DISABLE_MFA = TRUE;
+2. Data Ingestion Pipeline
+Staging data from Azure Blob Storage and executing high-volume COPY commands.
+
+SQL
 -- Create External Stage
 CREATE OR REPLACE STAGE LAB_DATA_STAGE 
 URL='azure://ab12345lab2.blob.core.windows.net/labdata'
@@ -63,20 +66,11 @@ FILE_FORMAT = (TYPE = 'CSV' FIELD_DELIMITER = ',' SKIP_HEADER = 0);
 
 -- Scale Down to Save Credits
 ALTER WAREHOUSE ELT_WH SET WAREHOUSE_SIZE = 'X-SMALL';
-. Data Ingestion PipelineStaging data from Azure Blob Storage and executing high-volume COPY commands.SQL-- Create External Stage
-CREATE OR REPLACE STAGE LAB_DATA_STAGE 
-URL='azure://ab12345lab2.blob.core.windows.net/labdata'
-CREDENTIALS=(AZURE_SAS_TOKEN='[REDACTED_SAS_TOKEN]');
+3. Star Schema Modeling (Views)
+Creating the semantic layer for Power BI reporting.
 
--- Scale Up for Ingestion
-ALTER WAREHOUSE ELT_WH SET WAREHOUSE_SIZE = 'X-LARGE';
-
-COPY INTO ITEMS_IN_SALES_ORDERS FROM @LAB_DATA_STAGE/items_in_sales_orders/ 
-FILE_FORMAT = (TYPE = 'CSV' FIELD_DELIMITER = ',' SKIP_HEADER = 0);
-
--- Scale Down to Save Credits
-ALTER WAREHOUSE ELT_WH SET WAREHOUSE_SIZE = 'X-SMALL';
-3. Star Schema Modeling (Views)Creating the semantic layer for Power BI reporting.SQL-- Location Dimension View
+SQL
+-- Location Dimension View
 CREATE OR REPLACE VIEW PUBLIC.LOCATION_V AS
 SELECT
     L.LOCATION_ID, L.COUNTRY, L.REGION, L.MUNICIPALITY,
@@ -91,7 +85,19 @@ SELECT
     SUM(QUANTITY) TOTAL_QUANTITY
 FROM PUBLIC.SALES_ORDERS_V
 GROUP BY 1, 2, 3;
-🚀 Connection ParametersUse these credentials in Power BI Desktop to connect to your Snowflake instance:PropertyValueServer[Account_Identifier].snowflakecomputing.comWarehousePOWERBI_WHDatabaseLAB_DBAuth ModeDatabase (User: POWERBI / Password: PowerBI_AV_2026!)🧹 Environment ResetRun this script to clean up your Snowflake trial account:SQLUSE ROLE ACCOUNTADMIN;
+🚀 Connection Parameters
+Use these credentials in Power BI Desktop to connect to your Snowflake instance:
+
+Property	Value
+Server	[Account_Identifier].snowflakecomputing.com
+Warehouse	POWERBI_WH
+Database	LAB_DB
+Auth Mode	Database (User: POWERBI / Password: PowerBI_AV_2026!)
+🧹 Environment Reset
+Run this script to clean up your Snowflake trial account:
+
+SQL
+USE ROLE ACCOUNTADMIN;
 DROP DATABASE IF EXISTS LAB_DB;
 DROP WAREHOUSE IF EXISTS ELT_WH;
 DROP WAREHOUSE IF EXISTS POWERBI_WH;
